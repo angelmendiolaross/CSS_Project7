@@ -16,6 +16,7 @@ pacman::p_load(# Tidyverse packages including dplyr and ggplot2
                augsynth,
                gsynth)
 library(dplyr)
+
 # set seed
 set.seed(1)
 
@@ -186,7 +187,7 @@ diff_in_diffs
 - **Answer**:
 
 - What are the strengths and weaknesses of using the parallel trends assumption in difference-in-differences estimates?
-- **Answer**:
+- **Answer**: While straighforward to understand and implement, the parallel trends assumption is not a testable hypothesis. This means that we may 
 
 
 # Synthetic Control
@@ -199,21 +200,117 @@ Do the following:
 
 - Choose a state that adopted the Medicaid expansion after January 1, 2014. Construct a non-augmented synthetic control and plot the results (both pre-treatment fit and post-treatment differences). Also report the average ATT and L2 imbalance.
 
+**For this analysis**, we chose California, as it adapted the Medicaid expansion after January 1st, 2014. 
+
 ```{r}
 # non-augmented synthetic control
+
+# drop observations that did not have a Medicaid adoption date on record
+medi2<- medicaid_expansion %>%
+  drop_na(Date_Adopted)
+
+# Create a treatment indicator for California after January 1 2014
+medi3 <- medi2 %>%
+  mutate(treatment = ifelse(State == "California" & year >= 2014, 1, 0))
+
+
+#run sysnthetic control
+syn <- augsynth(uninsured_rate ~ treatment, State, year, medi3,
+                progfunc = "None", scm = T)
+
+summary(syn)
+plot(syn)
+
+# Explore states that contributed weights weights
+data.frame(syn$weights) %>%
+  # change index to a column
+  tibble::rownames_to_column('State') %>%
+  ggplot() +
+  geom_bar(aes(x = State, 
+               y = syn.weights),
+           stat = 'identity') +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text(),
+        axis.text.x = element_text(angle = 90)) +
+  ggtitle('Synthetic Control Weights') +
+  xlab('State') +
+  ylab('Weight') 
+
+
 ```
+
+We now plot the pre- and post-treatment differences
+
+```{r}
+# extract the data from the output
+syn_sum <- summary(syn)
+
+syn_ca <- medi3 %>%
+  filter(State == "California") %>%
+  bind_cols(difference = syn_sum$att$Estimate) %>%
+  mutate(synthetic_california = uninsured_rate + difference)
+
+# Plot
+syn_ca %>%
+  ggplot() +
+  geom_point(aes(x = year, 
+                 y = uninsured_rate, 
+                 color = 'California')) +
+  geom_line(aes(x = year, 
+                y = uninsured_rate, 
+                color = 'California')) +
+  geom_point(aes(x = year, 
+                 y = synthetic_california, 
+                 color = 'Synthetic California')) +
+  geom_line(aes(x = year, 
+                y = synthetic_california, 
+                color = 'Synthetic California')) +
+  scale_color_manual(values = c('California' = 'red', 'Synthetic California' = 'blue')) +
+  geom_vline(aes(xintercept = 2014)) +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) +
+  ggtitle('California and Synthetic California') +
+  xlab('Year') +
+  ylab('Uninsured Rate')
+```
+
+
+**Answer**: The Average ATT estimate was -0.015, with an L2 imbalance of 0
 
 - Re-run the same analysis but this time use an augmentation (default choices are Ridge, Matrix Completion, and GSynth). Create the same plot and report the average ATT and L2 imbalance.
 
 ```{r}
 # augmented synthetic control
+ridge_syn <- augsynth(uninsured_rate ~ treatment, State, year, medi3,
+                progfunc = "ridge", scm = T)
+
+summary(ridge_syn)
+plot(ridge_syn)
+
+
 ```
 
 - Plot barplots to visualize the weights of the donors.
 
 ```{r}
 # barplots of weights
+data.frame(ridge_syn$weights) %>%
+  tibble::rownames_to_column('State') %>%
+  ggplot() +
+  geom_bar(aes(x = State, 
+               y = ridge_syn.weights),
+           stat = 'identity') +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text(),
+        axis.text.x = element_text(angle = 90)) +
+  ggtitle('Ridge Synthetic Control Weights') +
+  xlab('State') +
+  ylab('Weight') 
+
 ```
+
+**Answer**: In the augmented synthetic control, the Average ATT estimate was still -0.015, with an L2 imbalance of 0. 
+
 
 **HINT**: Is there any preprocessing you need to do before you allow the program to automatically find weights for donor states?
 
