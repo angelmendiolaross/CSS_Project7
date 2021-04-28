@@ -200,14 +200,17 @@ Do the following:
 
 - Choose a state that adopted the Medicaid expansion after January 1, 2014. Construct a non-augmented synthetic control and plot the results (both pre-treatment fit and post-treatment differences). Also report the average ATT and L2 imbalance.
 
-**For this analysis**, we chose California, as it adapted the Medicaid expansion after January 1st, 2014. 
+**For this analysis**, we chose California, as it adapted the Medicaid expansion on January 1st, 2014. 
 
 ```{r}
 # non-augmented synthetic control
 
-# drop observations that did not have a Medicaid adoption date on record
+# drop states that adopted medicaid before January 1st 2014
+medicaid_expansion %>% 
+  mutate(year_adopted = format(Date_Adopted, format="%Y"))
+         
 medi2<- medicaid_expansion %>%
-  drop_na(Date_Adopted)
+  filter(Date_Adopted >=2014)
 
 # Create a treatment indicator for California after January 1 2014
 medi3 <- medi2 %>%
