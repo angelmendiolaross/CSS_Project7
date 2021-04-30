@@ -132,7 +132,7 @@ medicaid_expansion %>%
   ylab('Uninsured Rate')
 ```
 
-Initially I selected Maryland (adopted 01-01-2014) and Virginia (adopted 01-01-2019) as comparative units given their geographical proximity. The lines somewhat move together, however the pre-treatment dissimilarity between 2008-2010 are concerning. Given this, I decided to try out Utah and Colorado to ascertain if they have more aligned parallel trends.
+Initially we selected Maryland (adopted 01-01-2014) and Virginia (adopted 01-01-2019) as comparative units given their geographical proximity. The lines somewhat move together, however the pre-treatment dissimilarity between 2008-2010 are concerning. Given this, we decided to try out Utah and Colorado to ascertain if they have more aligned parallel trends.
 
 ```{r}
 # Parallel Trends plot
@@ -154,7 +154,7 @@ medicaid_expansion %>%
   ylab('Uninsured Rate')
 ```
 
-Secondly, I selected Colorado (adopted 01-01-2014) and Utah (adopted 01-01-2020) as comparative units also given their geographical proximity to see if their trends were more parallel. There is a significant pre-treatment gap between 2008-2010; however, following 2010, the lines generally track closely together.
+Secondly, we selected Colorado (adopted 01-01-2014) and Utah (adopted 01-01-2020) as comparative units also given their geographical proximity to see if their trends were more parallel. There is a significant pre-treatment gap between 2008-2010; however, following 2010, the lines generally track closely together.
 
 - Estimates a difference-in-differences estimate of the effect of the Medicaid expansion on the uninsured share of the population. You may follow the lab example where we estimate the differences in one pre-treatment and one post-treatment period, or take an average of the pre-treatment and post-treatment outcomes
 
