@@ -393,7 +393,10 @@ ppool_syn_summ$att %>%
 # multisynth model time cohorts
 # bringing back in full sample minus DC and Massachusetts
 medicaid_expansion_clean <- medicaid_expansion %>%
-  subset(State %notin% c("Massachusetts", "District of Columbia"))
+  subset(State %notin% c("Massachusetts", "District of Columbia")) %>%
+  mutate(expan = ifelse(year<year_adopted,0,1),
+         expan = ifelse(is.na(year_adopted), 0, expan)) %>%
+  arrange(State)
 
 ppool_syn_time <- multisynth(uninsured_rate ~ expan, State, year, 
                         medicaid_expansion_clean, n_leads = 6, time_cohort = TRUE)
